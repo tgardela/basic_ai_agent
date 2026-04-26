@@ -18,6 +18,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Add issue number to title
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CURRENT_TITLE="${{ github.event.issue.title }}"
+          NUMBER="${{ github.event.issue.number }}"
+          if [[ "$CURRENT_TITLE" != "#${NUMBER} -"* ]]; then
+            gh issue edit $NUMBER \
+              --title "#${NUMBER} - ${CURRENT_TITLE}" \
+              --repo ${{ github.repository }}
+          fi
+
       - name: Run Claude Code Agent
         uses: anthropics/claude-code-action@beta
         with:
@@ -34,15 +46,34 @@ jobs:
             - Read the issue title and description carefully
             - Make the required code changes in the repository
             - Create a pull request with your changes
-            - Title the PR: "${{ github.event.issue.title }}"
+            - Title the PR: "#${{ github.event.issue.number }} - ${{ github.event.issue.title }}"
             - Reference issue #${{ github.event.issue.number }} in the PR body
+
       - name: Create Pull Request
         if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr create \
-            --title "${{ github.event.issue.title }}" \
-            --body "Closes #${{ github.event.issue.number }}" \
-            --base main \
-            --head "$(git rev-parse --abbrev-ref HEAD)" || true
+          echo "Waiting for Claude's branch to appear..."
+          BRANCH=""
+          for i in {1..10}; do
+            BRANCH=$(git ls-remote --heads origin "claude/issue-${{ github.event.issue.number }}-*" | head -1 | sed 's/.*refs\/heads\///')
+            if [ -n "$BRANCH" ]; then
+              echo "Found branch: $BRANCH"
+              break
+            fi
+            echo "Attempt $i: branch not found yet, waiting 10s..."
+            sleep 10
+          done
+
+          if [ -n "$BRANCH" ]; then
+            echo "Creating PR from branch: $BRANCH"
+            gh pr create \
+              --title "#${{ github.event.issue.number }} - ${{ github.event.issue.title }}" \
+              --body "Closes #${{ github.event.issue.number }}" \
+              --base main \
+              --head "$BRANCH" \
+              --repo ${{ github.repository }} || echo "PR already exists or failed"
+          else
+            echo "No Claude branch found after waiting, skipping PR creation"
+          fi
