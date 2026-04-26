@@ -53,18 +53,6 @@ jobs:
             - Create a pull request with your changes
             - Title the PR: "${{ github.event.issue.number }} - ${{ github.event.issue.title }}"
             - Reference issue #${{ github.event.issue.number }} in the PR body
-          custom_instructions: |
-            When creating a branch for your changes, name it using this exact format:
-            ISSUE_NUMBER-title_spelled_with_underscores
-
-            Rules:
-            - Use the issue number (no # symbol) followed by a dash
-            - Convert the issue title to lowercase
-            - Replace spaces with underscores
-            - Remove special characters except underscores and dashes
-            - Example: issue 14 "Fix the Login Button!" becomes: 14-fix_the_login_button
-
-            Always create and push to this branch name.
 
       - name: Create Pull Request
         if: success()
@@ -75,7 +63,7 @@ jobs:
           BRANCH=""
           NUMBER="${{ github.event.issue.number }}"
           for i in 1 2 3 4 5 6 7 8 9 10; do
-            BRANCH=$(git ls-remote --heads origin "${NUMBER}-*" | head -1 | sed 's/.*refs\/heads\///')
+          BRANCH=$(git ls-remote --heads origin "claude/issue-${NUMBER}-*" | head -1 | sed 's/.*refs\/heads\///')
             if [ -n "$BRANCH" ]; then
               echo "Found branch: $BRANCH"
               break
