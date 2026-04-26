@@ -68,12 +68,18 @@ jobs:
 
           if [ -n "$BRANCH" ]; then
             echo "Creating PR from branch: $BRANCH"
-            gh pr create \
+            PR_URL=$(gh pr create \
               --title "#${{ github.event.issue.number }} - ${{ github.event.issue.title }}" \
               --body "Closes #${{ github.event.issue.number }}" \
               --base main \
               --head "$BRANCH" \
-              --repo ${{ github.repository }} || echo "PR already exists or failed"
-          else
-            echo "No Claude branch found after waiting, skipping PR creation"
+              --repo ${{ github.repository }} 2>&1) || true
+
+            echo "PR URL: $PR_URL"
+
+            if [[ "$PR_URL" == https* ]]; then
+              gh issue comment ${{ github.event.issue.number }} \
+                --body "🚀 PR created: $PR_URL" \
+                --repo ${{ github.repository }}
+            fi
           fi
