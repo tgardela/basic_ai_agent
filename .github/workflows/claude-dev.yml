@@ -18,10 +18,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug - print label name
-        run: echo "Label added was -> ${{ github.event.label.name }}"
-
       - name: Run Claude Code Agent
         uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          trigger_phrase: ""
+          direct_prompt: |
+            Issue Title: ${{ github.event.issue.title }}
+            
+            Issue Description:
+            ${{ github.event.issue.body }}
+            
+            Instructions:
+            - Read the issue title and description carefully
+            - Make the required code changes in the repository
+            - Create a pull request with your changes
+            - Title the PR: "${{ github.event.issue.title }}"
+            - Reference issue #${{ github.event.issue.number }} in the PR body
