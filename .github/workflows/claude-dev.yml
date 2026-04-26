@@ -18,9 +18,9 @@ jobs:
         run: |
           CURRENT_TITLE="${{ github.event.issue.title }}"
           NUMBER="${{ github.event.issue.number }}"
-          if [[ "$CURRENT_TITLE" != "#${NUMBER} -"* ]]; then
+          if [[ "$CURRENT_TITLE" != "${NUMBER} -"* ]]; then
             gh issue edit $NUMBER \
-              --title "#${NUMBER} - ${CURRENT_TITLE}" \
+              --title "${NUMBER} - ${CURRENT_TITLE}" \
               --repo ${{ github.repository }}
           fi
 
@@ -64,7 +64,7 @@ jobs:
           echo "Waiting for Claude's branch to appear..."
           BRANCH=""
           for i in {1..10}; do
-            BRANCH=$(git ls-remote --heads origin "claude/issue-${{ github.event.issue.number }}-*" | head -1 | sed 's/.*refs\/heads\///')
+            BRANCH=$(git ls-remote --heads origin "${{ github.event.issue.number }}-*" | ...)
             if [ -n "$BRANCH" ]; then
               echo "Found branch: $BRANCH"
               break
@@ -75,7 +75,7 @@ jobs:
 
           if [ -n "$BRANCH" ]; then
             PR_URL=$(gh pr create \
-              --title "#${{ github.event.issue.number }} - ${{ github.event.issue.title }}" \
+              --title "${{ github.event.issue.number }} - ${{ github.event.issue.title }}" \
               --body "Closes #${{ github.event.issue.number }}" \
               --base main \
               --head "$BRANCH" \
