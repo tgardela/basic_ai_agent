@@ -2,22 +2,16 @@ name: Claude Code Agent
 
 on:
   issues:
-    types: [labeled]
+    types: [labeled, opened]
 
 jobs:
-  claude-code:
-    if: github.event.label.name == 'work_in_progress'
+
+  number-issue-title:
+    if: github.event_name == 'issues' && github.event.action == 'opened'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
       issues: write
-      id-token: write
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Add issue number to title
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -29,6 +23,19 @@ jobs:
               --title "#${NUMBER} - ${CURRENT_TITLE}" \
               --repo ${{ github.repository }}
           fi
+
+  claude-code:
+    if: github.event.action == 'labeled' && github.event.label.name == 'work_in_progress'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Run Claude Code Agent
         uses: anthropics/claude-code-action@beta
@@ -67,7 +74,6 @@ jobs:
           done
 
           if [ -n "$BRANCH" ]; then
-            echo "Creating PR from branch: $BRANCH"
             PR_URL=$(gh pr create \
               --title "#${{ github.event.issue.number }} - ${{ github.event.issue.title }}" \
               --body "Closes #${{ github.event.issue.number }}" \
