@@ -36,3 +36,13 @@ jobs:
             - Create a pull request with your changes
             - Title the PR: "${{ github.event.issue.title }}"
             - Reference issue #${{ github.event.issue.number }} in the PR body
+      - name: Create Pull Request
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "${{ github.event.issue.title }}" \
+            --body "Closes #${{ github.event.issue.number }}" \
+            --base main \
+            --head "$(git rev-parse --abbrev-ref HEAD)" || true
