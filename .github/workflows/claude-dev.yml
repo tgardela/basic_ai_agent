@@ -6,8 +6,8 @@ on:
 
 jobs:
   claude-code:
-    # Only runs when the label added is exactly "in-development"
-    if: github.event.label.name == 'in-development'
+    # Only runs when the label added is exactly "work_in_progress"
+    if: github.event.label.name == 'work_in_progress'
     runs-on: ubuntu-latest
     permissions:
       contents: write
