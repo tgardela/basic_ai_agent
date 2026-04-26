@@ -1,0 +1,24 @@
+name: Claude Code Agent
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  claude-code:
+    # Only runs when the label added is exactly "in-development"
+    if: github.event.label.name == 'in-development'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Claude Code Agent
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
