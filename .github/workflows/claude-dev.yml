@@ -45,16 +45,26 @@ jobs:
           trigger_phrase: ""
           direct_prompt: |
             Issue Title: ${{ github.event.issue.title }}
-            
             Issue Description:
             ${{ github.event.issue.body }}
-            
             Instructions:
             - Read the issue title and description carefully
             - Make the required code changes in the repository
             - Create a pull request with your changes
-            - Title the PR: "#${{ github.event.issue.number }} - ${{ github.event.issue.title }}"
+            - Title the PR: "${{ github.event.issue.number }} - ${{ github.event.issue.title }}"
             - Reference issue #${{ github.event.issue.number }} in the PR body
+          custom_instructions: |
+            When creating a branch for your changes, name it using this exact format:
+            ISSUE_NUMBER-title_spelled_with_underscores
+
+            Rules:
+            - Use the issue number (no # symbol) followed by a dash
+            - Convert the issue title to lowercase
+            - Replace spaces with underscores
+            - Remove special characters except underscores and dashes
+            - Example: issue 14 "Fix the Login Button!" becomes: 14-fix_the_login_button
+
+            Always create and push to this branch name.
 
       - name: Create Pull Request
         if: success()
@@ -63,8 +73,9 @@ jobs:
         run: |
           echo "Waiting for Claude's branch to appear..."
           BRANCH=""
-          for i in {1..10}; do
-            BRANCH=$(git ls-remote --heads origin "${{ github.event.issue.number }}-*" | ...)
+          NUMBER="${{ github.event.issue.number }}"
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            BRANCH=$(git ls-remote --heads origin "${NUMBER}-*" | head -1 | sed 's/.*refs\/heads\///')
             if [ -n "$BRANCH" ]; then
               echo "Found branch: $BRANCH"
               break
@@ -88,4 +99,6 @@ jobs:
                 --body "🚀 PR created: $PR_URL" \
                 --repo ${{ github.repository }}
             fi
+          else
+            echo "No branch found after waiting, skipping PR creation"
           fi
