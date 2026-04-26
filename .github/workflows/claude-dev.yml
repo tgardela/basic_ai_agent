@@ -18,9 +18,9 @@ jobs:
         run: |
           CURRENT_TITLE="${{ github.event.issue.title }}"
           NUMBER="${{ github.event.issue.number }}"
-          if [[ "$CURRENT_TITLE" != "${NUMBER} -"* ]]; then
+          if [[ "$CURRENT_TITLE" != "${NUMBER}:"* ]]; then
             gh issue edit $NUMBER \
-              --title "${NUMBER} - ${CURRENT_TITLE}" \
+              --title "${NUMBER}: ${CURRENT_TITLE}" \
               --repo ${{ github.repository }}
           fi
 
@@ -51,7 +51,7 @@ jobs:
             - Read the issue title and description carefully
             - Make the required code changes in the repository
             - Create a pull request with your changes
-            - Title the PR: "${{ github.event.issue.number }} - ${{ github.event.issue.title }}"
+            - Title the PR: "${{ github.event.issue.title }}"
             - Reference issue #${{ github.event.issue.number }} in the PR body
 
       - name: Create Pull Request
@@ -63,7 +63,7 @@ jobs:
           BRANCH=""
           NUMBER="${{ github.event.issue.number }}"
           for i in 1 2 3 4 5 6 7 8 9 10; do
-          BRANCH=$(git ls-remote --heads origin "claude/issue-${NUMBER}-*" | head -1 | sed 's/.*refs\/heads\///')
+            BRANCH=$(git ls-remote --heads origin "claude/issue-${NUMBER}-*" | head -1 | sed 's/.*refs\/heads\///')
             if [ -n "$BRANCH" ]; then
               echo "Found branch: $BRANCH"
               break
@@ -74,7 +74,7 @@ jobs:
 
           if [ -n "$BRANCH" ]; then
             PR_URL=$(gh pr create \
-              --title "${{ github.event.issue.number }} - ${{ github.event.issue.title }}" \
+              --title "${{ github.event.issue.title }}" \
               --body "Closes #${{ github.event.issue.number }}" \
               --base main \
               --head "$BRANCH" \
